@@ -24,7 +24,6 @@ jobs:
           context: .
           file: api/Dockerfile
           push: true
-          # Replace 'yourusername' with your Docker Hub username
           tags: |
-            yourusername/diabetes-risk-mlops:latest
-            yourusername/diabetes-risk-mlops:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/diabetes-risk-mlops:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/diabetes-risk-mlops:${{ github.sha }}
