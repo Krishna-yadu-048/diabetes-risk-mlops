@@ -9,12 +9,10 @@ Unit tests for core ML logic:
 
 import numpy as np
 import pandas as pd
-import pytest
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 
-from src.validate import EXPECTED_COLUMNS, validate, clean
-
+from src.validate import clean, validate
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 

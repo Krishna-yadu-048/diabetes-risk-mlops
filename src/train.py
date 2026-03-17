@@ -17,9 +17,8 @@ from pathlib import Path
 
 import mlflow
 import mlflow.sklearn
-from mlflow.tracking import MlflowClient
-import numpy as np
 import pandas as pd
+from mlflow.tracking import MlflowClient
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
@@ -203,8 +202,8 @@ def main():
         print(f"  ✅ Alias 'Production' set on version {best_version} ({best_name})")
     else:
         print("  ⚠️  Could not find matching model version — set the alias manually via Python:")
-        print(f"     from mlflow.tracking import MlflowClient")
-        print(f"     client = MlflowClient(tracking_uri='$(pwd)/mlruns')")
+        print("     from mlflow.tracking import MlflowClient")
+        print("     client = MlflowClient(tracking_uri='$(pwd)/mlruns')")
         print(f"     client.set_registered_model_alias('{MODEL_NAME}', 'Production', '<version_number>')")
 
     print("--- Done ---")

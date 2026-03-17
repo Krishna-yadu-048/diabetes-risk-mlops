@@ -47,7 +47,7 @@ def main():
     try:
         model = mlflow.sklearn.load_model(model_uri)
     except Exception as e:
-        print(f"ERROR: Could not load model. Is a version promoted to Production?")
+        print("ERROR: Could not load model. Is a version promoted to Production?")
         print(f"  Detail: {e}")
         raise
 

@@ -16,7 +16,6 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import mlflow.sklearn
-import numpy as np
 import pandas as pd
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse

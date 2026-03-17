@@ -15,7 +15,9 @@ $UVICORN    = "$VENV\Scripts\uvicorn.exe"
 $MLFLOW     = "$VENV\Scripts\mlflow.exe"
 $PYTEST     = "$VENV\Scripts\pytest.exe"
 $RUFF       = "$VENV\Scripts\ruff.exe"
-$MLRUNS_URI = "$PSScriptRoot\mlruns"
+$MLRUNS_PATH = "$PSScriptRoot\mlruns"
+# MLflow on Windows requires the file:/// URI scheme for the model registry
+$MLRUNS_URI  = "file:///" + $MLRUNS_PATH.Replace("\", "/")
 
 # ── Helper ────────────────────────────────────────────────────────────────────
 function Run($cmd) {
