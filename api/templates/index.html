@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diabetes Risk Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="container">
+
+    <header>
+      <h1>🩺 Diabetes Risk Predictor</h1>
+      <p>Enter clinical measurements to assess diabetes risk using a trained ML model.</p>
+    </header>
+
+    <!-- Error banner -->
+    {% if error %}
+    <div class="error-box">
+      <strong>Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- Result panel (only shown after a prediction) -->
+    {% if result %}
+    {% set is_positive = result.prediction == 1 %}
+    <div class="result {{ 'positive' if is_positive else 'negative' }}">
+      <div class="result-label">
+        {{ "⚠️ Diabetes Risk Detected" if is_positive else "✅ No Diabetes Risk" }}
+      </div>
+      <div class="result-meta">
+        <span>Confidence: <strong>{{ (result.confidence * 100) | round(1) }}%</strong></span>
+        <span>Model: <strong>{{ result.model_name }}</strong></span>
+      </div>
+      <div class="confidence-bar">
+        <div class="confidence-fill" style="width: {{ (result.confidence * 100) | round(1) }}%"></div>
+      </div>
+
+      <details>
+        <summary>View raw JSON response</summary>
+        <pre>{{ result | tojson(indent=2) }}</pre>
+      </details>
+    </div>
+    {% endif %}
+
+    <!-- Input form -->
+    <div class="card">
+      <h2>Patient Data</h2>
+      <form method="POST" action="/dashboard-predict">
+        <div class="form-grid">
+
+          <div class="field">
+            <label for="Pregnancies">Pregnancies</label>
+            <input type="number" id="Pregnancies" name="Pregnancies" min="0" max="20" step="1"
+              value="{{ form_data.Pregnancies if form_data else 2 }}" required />
+            <small>Number of times pregnant</small>
+          </div>
+
+          <div class="field">
+            <label for="Glucose">Glucose (mg/dL)</label>
+            <input type="number" id="Glucose" name="Glucose" min="1" max="300" step="0.1"
+              value="{{ form_data.Glucose if form_data else 138 }}" required />
+            <small>Plasma glucose (2-hour oral test)</small>
+          </div>
+
+          <div class="field">
+            <label for="BloodPressure">Blood Pressure (mm Hg)</label>
+            <input type="number" id="BloodPressure" name="BloodPressure" min="1" max="200" step="0.1"
+              value="{{ form_data.BloodPressure if form_data else 72 }}" required />
+            <small>Diastolic blood pressure</small>
+          </div>
+
+          <div class="field">
+            <label for="SkinThickness">Skin Thickness (mm)</label>
+            <input type="number" id="SkinThickness" name="SkinThickness" min="1" max="100" step="0.1"
+              value="{{ form_data.SkinThickness if form_data else 35 }}" required />
+            <small>Triceps skin fold thickness</small>
+          </div>
+
+          <div class="field">
+            <label for="Insulin">Insulin (mu U/ml)</label>
+            <input type="number" id="Insulin" name="Insulin" min="1" max="900" step="0.1"
+              value="{{ form_data.Insulin if form_data else 80 }}" required />
+            <small>2-hour serum insulin</small>
+          </div>
+
+          <div class="field">
+            <label for="BMI">BMI (kg/m²)</label>
+            <input type="number" id="BMI" name="BMI" min="0.1" max="70" step="0.1"
+              value="{{ form_data.BMI if form_data else 33.6 }}" required />
+            <small>Body mass index</small>
+          </div>
+
+          <div class="field">
+            <label for="DiabetesPedigreeFunction">Pedigree Function</label>
+            <input type="number" id="DiabetesPedigreeFunction" name="DiabetesPedigreeFunction"
+              min="0.001" max="3" step="0.001"
+              value="{{ form_data.DiabetesPedigreeFunction if form_data else 0.627 }}" required />
+            <small>Diabetes pedigree score</small>
+          </div>
+
+          <div class="field">
+            <label for="Age">Age (years)</label>
+            <input type="number" id="Age" name="Age" min="1" max="120" step="1"
+              value="{{ form_data.Age if form_data else 47 }}" required />
+            <small>Age in years</small>
+          </div>
+
+        </div>
+
+        <button type="submit" class="btn">Run Prediction →</button>
+      </form>
+    </div>
+
+    <footer>
+      Based on the <a href="https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database" target="_blank">
+        Pima Indians Diabetes Dataset
+      </a>. For educational purposes only — not a medical tool.
+      &nbsp;·&nbsp;
+      <a href="/docs" target="_blank">API Docs</a>
+    </footer>
+
+  </div>
+</body>
+</html>

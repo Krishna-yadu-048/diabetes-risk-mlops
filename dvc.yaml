@@ -1,0 +1,25 @@
+stages:
+  validate:
+    cmd: python src/validate.py
+    deps:
+      - src/validate.py
+      - data/raw/diabetes.csv
+    outs:
+      - data/processed/diabetes_clean.csv
+
+  train:
+    cmd: python src/train.py
+    deps:
+      - src/train.py
+      - data/processed/diabetes_clean.csv
+    outs:
+      - metrics/train_summary.json
+
+  evaluate:
+    cmd: python src/evaluate.py
+    deps:
+      - src/evaluate.py
+      - data/processed/diabetes_clean.csv
+    metrics:
+      - metrics/metrics.json:
+          cache: false
