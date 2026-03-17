@@ -1,9 +1,9 @@
 # 🩺 Diabetes Risk Predictor — MLOps Portfolio Project
 
-A end-to-end MLOps project that predicts diabetes risk from clinical measurements.
+An end-to-end MLOps project that predicts diabetes risk from clinical measurements.
 Three models (Logistic Regression, Random Forest, XGBoost) are trained, tracked,
-and compared in MLflow. The best model is served via a FastAPI REST API and an
-interactive prediction dashboard.
+and compared in MLflow. The best model is automatically promoted and served via a
+FastAPI REST API and an interactive prediction dashboard.
 
 Built using the **MLOps V2** template: lean, completable, and deployable without
 expensive cloud infrastructure.
@@ -12,7 +12,8 @@ expensive cloud infrastructure.
 
 ## 📸 Dashboard Preview
 
-> After running `make serve`, open [http://localhost:8000](http://localhost:8000)
+After running `.\run.ps1 serve` (Windows) or `make serve` (macOS/Linux),
+open [http://localhost:8000](http://localhost:8000)
 
 The dashboard lets anyone enter patient vitals and get a diabetes risk prediction
 with a confidence score — no API knowledge required.
@@ -24,7 +25,7 @@ with a confidence score — no API knowledge required.
 | Tool | Layer | Purpose |
 |---|---|---|
 | **DVC** | Data Versioning | Versions `data/` outside of Git. Works locally or with DagsHub. |
-| **MLflow** | Experiment Tracking | Logs all 3 model runs. Registry promotes best model to Production. |
+| **MLflow** | Experiment Tracking | Logs all 3 model runs. Best model is auto-promoted via alias. |
 | **FastAPI** | Model Serving + Dashboard | REST API at `/predict` and HTML dashboard at `/`. |
 | **Docker** | Environment | Packages the app into a container for consistent deployment. |
 | **GitHub Actions** | CI / CD | Runs tests + linting on push. Builds Docker image on merge to main. |
@@ -64,9 +65,10 @@ diabetes-risk-mlops/
 │   ├── test_api.py           # FastAPI endpoint tests (MLflow mocked)
 │   └── test_model.py         # validate(), clean(), and sklearn model tests
 │
+├── run.ps1                   # Windows PowerShell command runner
+├── Makefile                  # macOS / Linux command runner
 ├── dvc.yaml                  # DVC pipeline: validate → train → evaluate
 ├── pyproject.toml            # All dependencies (core + dev + dagshub)
-├── Makefile                  # Shortcuts for every common command
 ├── .env.example              # Environment variable template
 └── README.md
 ```
@@ -75,57 +77,62 @@ diabetes-risk-mlops/
 
 ## 🚀 Quickstart (Local)
 
-### 1. Clone and install
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/<your-username>/diabetes-risk-mlops.git
+cd diabetes-risk-mlops
+```
+
+### 2. Install dependencies
 
 **Windows (PowerShell):**
 ```powershell
-git clone https://github.com/<your-username>/diabetes-risk-mlops.git
-cd diabetes-risk-mlops
-
-# Allow PowerShell to run local scripts (one-time setup)
+# One-time: allow PowerShell to run local scripts
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 .\run.ps1 setup
 ```
 
+> 💡 To open PowerShell in your project folder: navigate to the folder in
+> File Explorer → Shift + Right-click on empty space → **Open PowerShell window here**
+
 **macOS / Linux:**
 ```bash
-git clone https://github.com/<your-username>/diabetes-risk-mlops.git
-cd diabetes-risk-mlops
 make setup
 ```
 
 This creates a `.venv/` virtual environment and installs all dependencies into it.
+You never need to activate the venv manually — all commands handle it automatically.
 
-### 2. Get the dataset
+### 3. Get the dataset
 
 Download the **Pima Indians Diabetes Dataset** from Kaggle:
 [https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database](https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database)
 
-Place the file at:
+Place the downloaded file at:
 ```
 data/raw/diabetes.csv
 ```
 
-### 3. Initialise DVC and version the data
+### 4. Initialise DVC
 
 **Windows:**
 ```powershell
 .\run.ps1 dvc-init
-.\run.ps1 dvc-push
 ```
 **macOS / Linux:**
 ```bash
 make dvc-init
 ```
 
-### 4. Run the full pipeline
+### 5. Validate and train
 
 **Windows:**
 ```powershell
-.\run.ps1 validate   # clean and validate the raw data
-.\run.ps1 train      # train all 3 models, log to MLflow
-                      # Production alias is set automatically on the best model
+.\run.ps1 validate   # cleans and validates the raw data
+.\run.ps1 train      # trains all 3 models and logs everything to MLflow
+                     # automatically sets the Production alias on the best model
 ```
 **macOS / Linux:**
 ```bash
@@ -133,23 +140,74 @@ make validate
 make train
 ```
 
-### 5. Evaluate and serve
+At the end of training you will see something like:
+```
+✅ Alias 'Production' set on version 1 (logistic_regression)
+```
+No manual promotion step needed.
+
+### 6. Evaluate the Production model
 
 **Windows:**
 ```powershell
-.\run.ps1 evaluate   # evaluate the Production model
-.\run.ps1 serve      # start FastAPI at http://localhost:8000
+.\run.ps1 evaluate
 ```
 **macOS / Linux:**
 ```bash
 make evaluate
+```
+
+Results are printed to the terminal and saved to `metrics/metrics.json`.
+
+### 7. Start the API and dashboard
+
+**Windows:**
+```powershell
+.\run.ps1 serve
+```
+**macOS / Linux:**
+```bash
 make serve
 ```
 
-Visit [http://localhost:8000](http://localhost:8000) for the dashboard,
-or [http://localhost:8000/docs](http://localhost:8000/docs) for the Swagger UI.
+| URL | What you get |
+|---|---|
+| [http://localhost:8000](http://localhost:8000) | Prediction dashboard |
+| [http://localhost:8000/docs](http://localhost:8000/docs) | Swagger UI |
+| [http://localhost:8000/health](http://localhost:8000/health) | Model load status |
 
-### 6. View MLflow experiment runs (optional)
+---
+
+## 🧪 Running Tests
+
+**Windows:**
+```powershell
+.\run.ps1 test
+```
+**macOS / Linux:**
+```bash
+make test
+```
+
+Tests run without a live MLflow server — the model is fully mocked via `unittest.mock`.
+11 tests covering API endpoints, data validation, and model training logic.
+
+To run the linter:
+
+**Windows:**
+```powershell
+.\run.ps1 lint
+.\run.ps1 lint-fix   # auto-fix where possible
+```
+**macOS / Linux:**
+```bash
+make lint
+make lint-fix
+```
+
+---
+
+## 🔬 Viewing MLflow Experiment Runs
 
 **Windows:**
 ```powershell
@@ -159,22 +217,11 @@ or [http://localhost:8000/docs](http://localhost:8000/docs) for the Swagger UI.
 ```bash
 make mlflow-ui
 ```
-Open **http://127.0.0.1:5000** → Experiments → diabetes-risk
 
----
+Open **http://127.0.0.1:5000** then click **diabetes-risk** in the left sidebar.
 
-## 🧪 Running Tests
-
-```bash
-make test
-```
-
-Tests run without a live MLflow server — the model is mocked via `unittest.mock`.
-
-```bash
-make lint       # check for issues
-make lint-fix   # auto-fix where possible
-```
+You will see all three model runs side by side with their metrics (AUC, F1, Accuracy).
+The run with the `Production` alias tag is the one currently being served.
 
 ---
 
@@ -188,9 +235,9 @@ recruiters your experiment runs without them having to run anything locally.
 1. Create a free account at [https://dagshub.com](https://dagshub.com)
 2. Create a new repo and push your project to it
 3. On DagsHub, go to your repo → **Remote → Experiments** to get your tracking URI
-4. Copy `.env.example` to `.env` and fill in:
+4. Copy `.env.example` to `.env` and fill in your credentials:
 
-```bash
+```
 MLFLOW_TRACKING_URI=https://dagshub.com/<your_username>/<your_repo>.mlflow
 MLFLOW_TRACKING_USERNAME=<your_dagshub_username>
 MLFLOW_TRACKING_PASSWORD=<your_dagshub_token>
@@ -198,12 +245,22 @@ MLFLOW_TRACKING_PASSWORD=<your_dagshub_token>
 
 5. Install the optional DagsHub dependency:
 
+**Windows:**
+```powershell
+.venv\Scripts\pip install -e ".[dagshub]"
+```
+**macOS / Linux:**
 ```bash
-pip install -e ".[dagshub]"
+.venv/bin/pip install -e ".[dagshub]"
 ```
 
-6. Run training as normal — all runs will now appear in your DagsHub experiment page:
+6. Re-run training — all runs will now appear in your DagsHub experiment page:
 
+**Windows:**
+```powershell
+.\run.ps1 train
+```
+**macOS / Linux:**
 ```bash
 make train
 ```
@@ -215,13 +272,25 @@ make train
 
 ## 🐳 Docker
 
-Build and run the API in a container:
+**Build the image:**
 
 ```bash
-# Build
 docker build -t diabetes-risk-mlops -f api/Dockerfile .
+```
 
-# Run (mount local mlruns so the container can find the Production model)
+**Run the container:**
+
+Windows (PowerShell):
+```powershell
+docker run -p 8000:8000 `
+  -e MODEL_NAME=diabetes-risk-model `
+  -e MLFLOW_TRACKING_URI=mlruns `
+  -v ${PWD}/mlruns:/app/mlruns `
+  diabetes-risk-mlops
+```
+
+macOS / Linux:
+```bash
 docker run -p 8000:8000 \
   -e MODEL_NAME=diabetes-risk-model \
   -e MLFLOW_TRACKING_URI=mlruns \
@@ -249,7 +318,7 @@ To enable CD, add these secrets to your GitHub repo
 Also update the image tag in `.github/workflows/cd_pipeline.yml`:
 ```yaml
 tags: yourusername/diabetes-risk-mlops:latest
-       # ↑ replace with your Docker Hub username
+      # replace with your Docker Hub username
 ```
 
 ---
@@ -267,6 +336,15 @@ tags: yourusername/diabetes-risk-mlops:latest
 
 ### Example `/predict` request
 
+**Windows (PowerShell):**
+```powershell
+Invoke-RestMethod -Uri http://localhost:8000/predict `
+  -Method Post `
+  -ContentType "application/json" `
+  -Body '{"Pregnancies":2,"Glucose":138,"BloodPressure":72,"SkinThickness":35,"Insulin":80,"BMI":33.6,"DiabetesPedigreeFunction":0.627,"Age":47}'
+```
+
+**macOS / Linux:**
 ```bash
 curl -X POST http://localhost:8000/predict \
   -H "Content-Type: application/json" \
@@ -295,11 +373,9 @@ curl -X POST http://localhost:8000/predict \
 
 ---
 
-## 📋 Commands
+## 📋 Command Reference
 
-All commands are available via `run.ps1` on Windows or `make` on macOS/Linux.
-
-| Command | Windows | macOS / Linux |
+| Action | Windows | macOS / Linux |
 |---|---|---|
 | Install dependencies | `.\run.ps1 setup` | `make setup` |
 | Initialise DVC | `.\run.ps1 dvc-init` | `make dvc-init` |
